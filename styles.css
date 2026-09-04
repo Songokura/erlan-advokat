@@ -240,6 +240,11 @@ input[type=range]{width:100%;accent-color:var(--stamp);height:32px}
 .case p{color:var(--ink-soft);font-size:15px;margin-top:2px;max-width:26em}
 .case .stamp{position:absolute;right:12px;bottom:12px;font-size:16px;padding:7px 12px}
 /* место под решения, которые адвокат пришлёт: карточка-приглашение */
+/* Вторая группа дел - «не дал забрать». Голова секции внутри той же секции,
+   поэтому кикеру и заголовку нужен отступ сверху. */
+.ask.second{margin-top:56px}
+.case .amt[data-i18n]{font-size:26px;line-height:1.15}
+
 .case.more{border-style:dashed;display:flex;flex-direction:column;justify-content:center;min-height:150px}
 .case.more h3{padding-right:0;font-weight:600;font-size:19px}
 .case.more p{margin-top:8px}
