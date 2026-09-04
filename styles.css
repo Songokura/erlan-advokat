@@ -65,13 +65,17 @@ section+section{border-top:1px solid var(--line)}
 #thread i{display:block;width:100%;height:0;background:var(--thread);transition:height .1s linear}
 
 /* Шапка. Одна линия: имя слева, лента вкладок по центру, языки и телефон
-   справа. Ниже 1200px в строку это уже не умещается - лента переезжает
-   на второй ряд, остальное остаётся на месте. */
+   справа. Ниже 1200px строка не умещается - лента становится меню под бургером.
+
+   Правая группа НЕ прижимается margin-left:auto на десктопе: auto-margin
+   съедает весь свободный остаток, распоркам ленты не достаётся ничего,
+   и лента уезжает влево от центра. Прижатие включается только в ветке
+   с бургером, где ленты в строке уже нет. */
 header{position:sticky;top:0;z-index:40;background:rgba(241,236,224,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
-header .wrap{display:flex;align-items:center;justify-content:space-between;height:64px;gap:20px;max-width:1340px}
-.brand{font-weight:600;font-size:16px;line-height:1.2;flex:0 0 auto;position:relative;z-index:2}
+header .wrap{display:flex;align-items:center;justify-content:space-between;height:64px;gap:16px;max-width:1180px;position:relative}
+.brand{font-weight:600;font-size:16px;line-height:1.2;flex:0 0 auto;position:relative;z-index:3}
 .brand small{display:block;font-weight:300;font-style:italic;font-size:13px;color:var(--ink-soft)}
-.hdr-right{display:flex;align-items:center;gap:12px;flex:0 0 auto;position:relative;z-index:2;margin-left:auto}
+.hdr-right{display:flex;align-items:center;gap:10px;flex:0 0 auto;position:relative;z-index:3}
 .call{font-family:'Oswald',sans-serif;font-weight:500;font-size:15px;letter-spacing:.04em;text-decoration:none;padding:9px 14px;border:1.5px solid var(--ink);border-radius:3px;white-space:nowrap}
 
 /* Переключатель языка - стандартный сегментированный контрол мастерской.
@@ -83,15 +87,37 @@ header .wrap{display:flex;align-items:center;justify-content:space-between;heigh
   cursor:pointer;line-height:1;transition:background .2s,color .2s;
 }
 .lang button[aria-pressed="true"]{background:var(--sheet);color:var(--ink);box-shadow:0 1px 2px rgba(26,34,51,.14)}
+
+/* ── Бургер и меню ──────────────────────────────────────────────────────
+   Один порог на всё: 1199px - и на появление бургера, и на оверлей меню.
+   Считан по казахской версии: её подписи длиннее русских, строка перестаёт
+   помещаться раньше.
+
+   🔴 backdrop-filter на шапке делает её containing block для fixed-потомков,
+   и оверлей меню схлопнулся бы в высоту шапки. Поэтому при открытом меню
+   фильтр снимается; в transition шапки его нет намеренно - иначе containing
+   block жил бы ещё всю длительность перехода. */
+.burger{display:none;width:42px;height:38px;border:1.5px solid var(--ink);border-radius:3px;background:var(--sheet);cursor:pointer;position:relative;flex:0 0 auto}
+.burger span,.burger::before,.burger::after{content:"";position:absolute;left:10px;width:20px;height:1.8px;background:var(--ink);transition:transform .25s,opacity .2s}
+.burger span{top:17.6px}
+.burger::before{top:11.6px}
+.burger::after{top:23.6px}
+body.menu-open .burger span{opacity:0}
+body.menu-open .burger::before{transform:translateY(6px) rotate(45deg)}
+body.menu-open .burger::after{transform:translateY(-6px) rotate(-45deg)}
+
 /* Лента вкладок - закладки, разложенные по папке. Центрируется распорками
    ::before/::after с flex:1: место есть - лента стоит по центру, места нет -
    распорки схлопываются в ноль, прокрутка работает и левый край не срезается
    (justify-content:center при переполнении срезал бы первую вкладку). */
 nav.tabs{
-  display:flex;gap:5px;overflow-x:auto;scrollbar-width:none;
-  position:relative;z-index:1;flex:1 1 auto;min-width:0;
+  display:flex;gap:5px;overflow-x:auto;scrollbar-width:none;z-index:1;
+  /* Центр ленты = центр экрана, а не центр промежутка между именем и правой
+     группой: группы разной ширины, и от «центрирования остатком» лента
+     уезжала влево на 30-40px. */
+  position:absolute;left:50%;transform:translateX(-50%);
+  max-width:calc(100% - 40px);
 }
-nav.tabs::before,nav.tabs::after{content:"";flex:1 0 0;min-width:0}
 nav.tabs::-webkit-scrollbar{display:none}
 nav.tabs a{flex:0 0 auto;text-decoration:none;font-size:14px;padding:6px 11px;border:1px solid var(--line);border-radius:4px;background:var(--sheet);color:var(--ink-soft);box-shadow:0 1px 2px rgba(26,34,51,.06);white-space:nowrap}
 nav.tabs a.on{background:var(--ink);color:var(--sheet);border-color:var(--ink)}
@@ -267,8 +293,6 @@ footer a{text-decoration:none}
 
 :focus-visible{outline:2px solid var(--thread);outline-offset:3px}
 
-/* Ниже 1200px лента вкладок в одну строку с именем и телефоном уже не влезает:
-   переносим её вторым рядом на всю ширину шапки. */
 /* Казахская версия. Строка на казахском заметно длиннее русской: заголовок
    героя вырастал с четырёх строк до шести и выдавливал лид с первого экрана.
    Кегль и межбуквенное для kk подобраны отдельно, по скриншоту. */
@@ -280,11 +304,24 @@ html[lang="kk"] .portrait figcaption{max-width:100%}
    заголовка - на казахском печать мельче и опущена ниже строки. */
 html[lang="kk"] .hero-stamp{font-size:clamp(15px,4.2vw,31px);bottom:-30px}
 
+/* Ниже 1200px лента вкладок в строку не помещается - она становится меню. */
 @media (max-width:1199px){
-  header .wrap{flex-wrap:wrap;height:auto;padding-top:10px;gap:10px 16px;row-gap:0}
-  .brand{padding:8px 0}
-  nav.tabs{order:3;flex:1 0 100%;margin:0 -20px;padding:2px 20px 11px}
-  nav.tabs::before,nav.tabs::after{flex:1 0 0}
+  .burger{display:block}
+  .hdr-right{margin-left:auto}
+  nav.tabs{
+    position:fixed;inset:0;left:0;transform:none;max-width:none;z-index:2;display:block;overflow-y:auto;
+    padding:88px 20px 40px;background:var(--paper);
+    opacity:0;visibility:hidden;transform:translateY(-8px);
+    transition:opacity .22s,transform .22s,visibility .22s;
+  }
+  body.menu-open nav.tabs{opacity:1;visibility:visible;transform:none}
+  body.menu-open{overflow:hidden}
+  body.menu-open header{backdrop-filter:none}
+  nav.tabs a{
+    display:block;width:100%;max-width:560px;margin:0 auto 8px;font-size:20px;
+    padding:15px 18px;border-radius:5px;box-shadow:none;
+  }
+  nav.tabs a.on{background:var(--sheet);color:var(--ink);border-color:var(--ink)}
 }
 @media (max-width:719px){
   body{padding-bottom:60px}
@@ -296,7 +333,8 @@ html[lang="kk"] .hero-stamp{font-size:clamp(15px,4.2vw,31px);bottom:-30px}
   .call{font-size:13px;padding:8px 10px}
   .lang button{padding:5px 8px;font-size:12px}
   .hdr-right{gap:8px}
-  nav.tabs{padding:0 20px 10px}
+  nav.tabs{padding:80px 18px 36px}
+  nav.tabs a{font-size:19px;padding:14px 16px}
   .portrait img{object-position:50% 18%}
   .facts{grid-template-columns:1fr;gap:0;margin-top:34px}
   .facts div{display:grid;grid-template-columns:140px 1fr;gap:14px;align-items:baseline;padding:13px 0;border-bottom:1px solid var(--line);font-size:14px}

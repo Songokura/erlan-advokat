@@ -217,6 +217,28 @@ function applyLang(lang, remember){
     if(navigator.vibrate) navigator.vibrate(30);
   }
 
+  /* Меню под бургером. Один и тот же список работает и лентой вкладок
+     на десктопе, и полноэкранным меню на узком экране - разводит только CSS.
+     Закрывается по пункту, по Esc и когда экран снова становится широким. */
+  var burger = document.getElementById('burger');
+  var menuBox = document.getElementById('menu');
+  function menuSet(open){
+    document.body.classList.toggle('menu-open', open);
+    burger.setAttribute('aria-expanded', String(open));
+  }
+  burger.addEventListener('click', function(){
+    menuSet(!document.body.classList.contains('menu-open'));
+  });
+  menuBox.addEventListener('click', function(e){
+    if(e.target.tagName === 'A') menuSet(false);
+  });
+  addEventListener('keydown', function(e){
+    if(e.key === 'Escape' && document.body.classList.contains('menu-open')) menuSet(false);
+  });
+  matchMedia('(min-width:1200px)').addEventListener('change', function(e){
+    if(e.matches) menuSet(false);
+  });
+
   /* нить прогресса */
   var thread = document.querySelector('#thread i');
 
@@ -234,6 +256,7 @@ function applyLang(lang, remember){
     curTab = cur;
     links.forEach(function(a,k){ a.classList.toggle('on', k===cur); });
     if(cur < 0) return;
+    if(!matchMedia('(min-width:1200px)').matches) return;
     var a = links[cur];
     var want = a.offsetLeft - (navBox.clientWidth - a.offsetWidth)/2;
     navBox.scrollTo({left: Math.max(0, want), behavior: reduce ? 'auto' : 'smooth'});
